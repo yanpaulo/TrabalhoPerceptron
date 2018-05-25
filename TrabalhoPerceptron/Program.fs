@@ -1,9 +1,9 @@
 ﻿// Saiba mais sobre F# em http://fsharp.org
 // Veja o projeto 'F# Tutorial' para obter mais ajuda.
 
-open MathNet.Numerics.LinearAlgebra
 open FSharp.Charting
 open System.Windows.Forms
+open MathNet.Numerics.LinearAlgebra
 
 let treinamento = [([2.0; 2.0], 1.0) ; ([4.0; 4.0], 0.0)]
 
@@ -45,12 +45,41 @@ let rec atualizaPesos tr w =
     let (w', e') = atualizaPesos' tr w e
     if e' = 0.0 then w' else atualizaPesos tr w'
 
+let displayFn w x1 =
+    List.ofSeq w |> 
+    function | w0 :: w1 :: w2 :: _ -> -x1 * (w1 / w2) + (w0 / w2)
 
+let arrayTuple x =
+    match x with
+    | x1 :: x2 :: tail -> (x1, x2)
+    | [] -> (0.0, 0.0)
+    | _ -> (0.0, 0.0)
+
+let point (x, y: float) = Chart.Point([arrayTuple x])
 
 [<EntryPoint>]
 let main argv = 
+    //let w = atualizaPesos treinamento w0
+    //treinamento |>
+    //List.iter (fun (x, y) -> printfn "%A" (ativacao w (xn x)))
+    //List.map
     let w = atualizaPesos treinamento w0
-    treinamento |>
-    List.iter (fun (x, y) -> printfn "%A" (ativacao w (xn x)))
+    let point = 
+        treinamento |>
+        List.map (fun (x, y) -> arrayTuple x ) |>
+        Chart.Point
+    
+    let line = 
+        [1.0 .. 10.0] |>
+        List.map (fun x0 -> (x0, displayFn w x0)) |>
+        Chart.Line
+        
+        
 
+    let form = new Form()
+
+    let r = Chart.Combine([point ; line]).ShowChart()
+
+    Application.Run(form)
+    //Chart.Point
     0 // retornar um código de saída inteiro
