@@ -3,7 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TrabalhoPerceptron", "TrabalhoPerceptron\TrabalhoPerceptron.fsproj", "{F70A95C8-B139-4B52-97AF-5A08DC2EF041}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApp1", "WindowsFormsApp1\WindowsFormsApp1.csproj", "{BCCDB977-EA71-4537-823A-44D935B30D4F}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F70A95C8-B139-4B52-97AF-5A08DC2EF041}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F70A95C8-B139-4B52-97AF-5A08DC2EF041}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F70A95C8-B139-4B52-97AF-5A08DC2EF041}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F70A95C8-B139-4B52-97AF-5A08DC2EF041}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCCDB977-EA71-4537-823A-44D935B30D4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCCDB977-EA71-4537-823A-44D935B30D4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCCDB977-EA71-4537-823A-44D935B30D4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCCDB977-EA71-4537-823A-44D935B30D4F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
