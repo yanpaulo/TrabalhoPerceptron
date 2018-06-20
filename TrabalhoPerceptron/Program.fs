@@ -9,7 +9,7 @@ open MathNet.Numerics.Random
 open MathNet.Numerics.Distributions
 open MathNet.Numerics.LinearAlgebra
 
-type Realizacao = { Acuracia:float; Confusao: Matrix<float>; Dados: seq<float list * float>; W: Vector<float> }
+type Realizacao = { Acuracia:float; Confusao: Matrix<float>; W: Vector<float>; Dados: seq<float list * float> }
 type RealizacaoIris2a2 = { Realizacao: Realizacao; Par: int * int }
 
 let xn x = vector (-1.0 :: x)
@@ -41,7 +41,7 @@ let vetorPesos tr =
                     let xv = xn x
                     let e1 = erro w xv y
                     let w1 = proximo w xv e1
-                    atualizaPesos1 tail w1 e1
+                    atualizaPesos1 tail w1 (if e <> 0.0 then e else e1)
 
         let e = match List.head tr with (x, y) -> erro w (xn x) y
         let (w', e') = atualizaPesos1 tr w e
@@ -57,26 +57,22 @@ let vetorPesos tr =
 
 let realizacao dados =
     let confusao = matrix([[0.0; 0.0]; [0.0; 0.0]])
-        
-    let treinamento = 
-        dados |>
-        Seq.take 80 |>
-        List.ofSeq
-        
-    let tamanhoVetor = 
-        treinamento.Head |> 
-        fun (x, y) -> x |> List.length |> (+) 1
 
-    let w0 = Random.doubles tamanhoVetor |> vector
+    let dadosList = dados |> List.ofSeq
+    let treinamento = 
+        let n = dadosList |> List.length |> float |> (*) 0.8 |> int
+        dadosList |> List.take n
+
+    let teste = dadosList |> List.except treinamento
 
     let w = vetorPesos treinamento
 
-    dados |>
+    teste |>
         Seq.iter (fun (x, y) -> 
             let a = int (ativacao (xn x) w)
             confusao.[a, int y] <- confusao.[a, int y] + 1.0)
         
-    { Acuracia = confusao.Diagonal().Sum() / float (dados |> Seq.length) ; Confusao = confusao; Dados = dados; W = w }
+    { Acuracia = confusao.Diagonal().Sum() / float (teste |> Seq.length) ; Confusao = confusao; Dados = dadosList; W = w }
 
 let algoritmoIris =
     let db = CsvFile.Load("iris.data").Cache()
@@ -126,8 +122,7 @@ let algoritmoIris2a2 =
         realizacoes |>
             Seq.maxBy (fun r -> r.Realizacao.Acuracia)
 
-    printfn "Iris 2 a 2, par utilizado: (x1, x2) = %A" maior.Par
-    maior.Realizacao
+    maior
 
 let algoritmoCustom =
     let xa = Array.zeroCreate 50
@@ -143,13 +138,13 @@ let algoritmoCustom =
     //Distribuição normal (ou gaussiana)
     Normal.Samples(xa, 2.0, 0.2)
     Normal.Samples(xb, 2.0, 0.2)
-    Normal.Samples(xc, 5.0, 0.2)
-    Normal.Samples(xd, 4.0, 0.2)
+    Normal.Samples(xc, 6.0, 0.2)
+    Normal.Samples(xd, 4.5, 0.2)
 
     Normal.Samples(ya, 3.5, 0.2)
     Normal.Samples(yb, 0.5, 0.2)
-    Normal.Samples(yc, 1.0, 0.2)
-    Normal.Samples(yd, 4.0, 0.2)
+    Normal.Samples(yc, 0.8, 0.2)
+    Normal.Samples(yd, 3.5, 0.2)
 
     let x = Array.append xa xb
     let y = Array.append ya yb
@@ -208,18 +203,22 @@ let exibe realizacao =
         | x -> Chart.Point(data = x, Color = System.Drawing.Color.Blue)
 
     let line = 
-        [1.0 .. 10.0] |>
+        [0.0 .. 10.0] |>
         List.map (fun x0 -> (x0, funcaoX2 realizacao.W x0)) |>
         Chart.Line
 
-    Chart.Combine([point0; point1 ; line]).ShowChart()
+    Chart.Combine([point0; point1 ; line]).ShowChart() |> ignore
+    realizacao
 
 [<EntryPoint>]
 let main argv = 
     let form = new Form()
-    algoritmoIris |> printfn "%A"
-    algoritmoIris2a2 |> printfn "%A"
-    algoritmoCustom |> printfn "%A"
+
+    algoritmoIris |> printfn "\n\nIris:\n%A"
+    algoritmoIris2a2 |> printfn "\n\nIris2a2\n%A"
+
+    algoritmoIris2a2.Realizacao |> exibe |> ignore
+    algoritmoCustom |> exibe |> printfn "\n\nCustom\n%A"
     Application.Run(form)
 
     0 // retornar um código de saída inteiro
