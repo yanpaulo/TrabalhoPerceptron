@@ -10,7 +10,7 @@ open MathNet.Numerics.Distributions
 open MathNet.Numerics.LinearAlgebra
 
 type Realizacao = { Acuracia:float; Confusao: Matrix<float>; Dados: seq<float list * float>; W: Vector<float> }
-type RealizacaoIris = { Realizacao: Realizacao; Par: int * int }
+type RealizacaoIris2a2 = { Realizacao: Realizacao; Par: int * int }
 
 let xn x = vector (-1.0 :: x)
 
@@ -30,21 +30,30 @@ let erro w x y = y - ativacao w x
 let proximo (w: Vector<_>) (x: Vector<_>) e =
     w + 0.1 * e * x
 
-let rec atualizaPesos tr w =
-    let rec atualizaPesos' tr w e =
-        match tr with
-        | [] -> (w, e)
-        | par :: tail ->
-            match par with
-            | (x, y) -> 
-                let x' = xn x
-                let e' = erro w x' y
-                let w' = proximo w x' e'
-                atualizaPesos' tail w' (if e = 0.0 then e' else e)
+let vetorPesos tr =
+    let rec atualizaPesos tr w =
+        let rec atualizaPesos1 tr w e =
+            match tr with
+            | [] -> (w, e)
+            | par :: tail ->
+                match par with
+                | (x, y) -> 
+                    let xv = xn x
+                    let e1 = erro w xv y
+                    let w1 = proximo w xv e1
+                    atualizaPesos1 tail w1 e1
 
-    let e = match Seq.head tr with (x, y) -> erro w (xn x) y
-    let (w', e') = atualizaPesos' tr w e
-    if e' = 0.0 then w' else atualizaPesos tr w'
+        let e = match List.head tr with (x, y) -> erro w (xn x) y
+        let (w', e') = atualizaPesos1 tr w e
+        if e' = 0.0 then w' else atualizaPesos (tr.SelectPermutation() |> List.ofSeq) w'
+    let tamanhoVetor =
+        tr |> 
+        List.head |> 
+        fun (x, y) -> x |> List.length |> (+) 1
+
+    let w0 = Random.doubles tamanhoVetor |> vector
+
+    atualizaPesos tr w0
 
 ///Retorna x2 para dado x1
 let displayFn w x1 =
@@ -54,33 +63,33 @@ let displayFn w x1 =
         | _ -> 0.0
 
 ///Converte os 2 primeiros elementos de dada lista em uma tupla
-let arrayTuple x =
+let tuple2 x =
     match x with
     | x1 :: x2 :: tail -> (x1, x2)
     | _ -> (0.0, 0.0)
 
-let exibe (maior: Realizacao) =
-    printfn "%A" maior.Confusao
+let exibe realizacao =
+    printfn "%A" realizacao.Confusao
 
     let point0 = 
-        maior.Dados |>
+        realizacao.Dados |>
         Seq.filter (fun (x, y) -> y = 0.0) |>
         List.ofSeq |>
-        List.map (fun (x, y) -> arrayTuple x ) |>
+        List.map (fun (x, y) -> tuple2 x ) |>
         function 
         | x -> Chart.Point(data = x, Color = System.Drawing.Color.Red)
 
     let point1 = 
-        maior.Dados |>
+        realizacao.Dados |>
         Seq.filter (fun (x, y) -> y = 1.0) |>
         List.ofSeq |>
-        List.map (fun (x, y) -> arrayTuple x ) |>
+        List.map (fun (x, y) -> tuple2 x ) |>
         function 
         | x -> Chart.Point(data = x, Color = System.Drawing.Color.Blue)
 
     let line = 
         [1.0 .. 10.0] |>
-        List.map (fun x0 -> (x0, displayFn maior.W x0)) |>
+        List.map (fun x0 -> (x0, displayFn realizacao.W x0)) |>
         Chart.Line
 
     Chart.Combine([point0; point1 ; line]).ShowChart()
@@ -99,7 +108,7 @@ let realizacao dados =
 
     let w0 = Random.doubles tamanhoVetor |> vector
 
-    let w = atualizaPesos treinamento w0
+    let w = vetorPesos treinamento
 
     dados |>
         Seq.iter (fun (x, y) -> 
@@ -107,6 +116,21 @@ let realizacao dados =
             confusao.[a, int y] <- confusao.[a, int y] + 1.0)
         
     { Acuracia = confusao.Diagonal().Sum() / float (dados |> Seq.length) ; Confusao = confusao; Dados = dados; W = w }
+
+let algoritmoIris =
+    let db = CsvFile.Load("iris.data").Cache()
+    let classes = dict["Iris-setosa", 0; "Iris-versicolor", 1; "Iris-virginica", 1]
+    
+    let parse s = s |> System.Double.Parse
+    let mapRow (row: CsvRow) = (row.Columns |> Array.take 4 |> Array.map parse |> List.ofArray, float classes.[row.["class"]])
+    
+    let dados = db.Rows |> Seq.map mapRow
+    let realizacoes =
+        [1..20] |>
+        Seq.map (fun _ -> realizacao (dados.SelectPermutation()))
+    
+    realizacoes |>
+        Seq.maxBy (fun r -> r.Acuracia)
 
 let algoritmoIris2a2 =
     let db = CsvFile.Load("iris.data").Cache()
@@ -119,7 +143,7 @@ let algoritmoIris2a2 =
                 yield (x1, x2)
         }
 
-    let mapRow x1 x2 (row: CsvRow) = ([row.[x1: int].AsFloat(); row.[x2: int].AsFloat()], float classes.[row.["class"]])
+    let mapRow x1 x2 (row: CsvRow) = ([row.[int x1].AsFloat(); row.[int x2].AsFloat()], float classes.[row.["class"]])
     let mapPar (x1, x2) = 
         db.Rows |>
         Seq.map (mapRow x1 x2)
@@ -156,7 +180,7 @@ let algoritmoCustom =
     //Distribuição normal (ou gaussiana)
     Normal.Samples(xa, 2.0, 0.2)
     Normal.Samples(xb, 2.0, 0.2)
-    Normal.Samples(xc, 6.0, 0.2)
+    Normal.Samples(xc, 5.0, 0.2)
     Normal.Samples(xd, 4.0, 0.2)
 
     Normal.Samples(ya, 3.5, 0.2)
