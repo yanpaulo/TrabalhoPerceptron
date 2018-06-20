@@ -108,7 +108,7 @@ let algoritmoIris =
     let db = CsvFile.Load("iris.data").Cache()
     let classes = dict["Iris-setosa", 0; "Iris-versicolor", 1; "Iris-virginica", 1]
 
-    let pares = 
+    let pares =
         seq {
         for x1 in 0..2 do
             for x2 in x1+1..3 do
@@ -121,13 +121,14 @@ let algoritmoIris =
         Seq.map (mapRow x1 x2)
     
     let fazRealizacoes (x1, x2) =
-        [0..20] |>
+        [1..20] |>
         Seq.map (fun _ -> realizacao ((mapPar (x1, x2)).SelectPermutation())) |>
         Seq.map (fun r -> { Realizacao = r; Par = (x1, x2) })
 
     let realizacoes = 
         pares |>
         Seq.collect fazRealizacoes
+    
     
     let maior = 
         realizacoes |>
@@ -141,32 +142,36 @@ let algoritmoCustom =
     let xa = Array.zeroCreate 50
     let xb = Array.zeroCreate 50
     let xc = Array.zeroCreate 50
+    let xd = Array.zeroCreate 50
     
     let ya = Array.zeroCreate 50
     let yb = Array.zeroCreate 50
     let yc = Array.zeroCreate 50
+    let yd = Array.zeroCreate 50
 
     //Distribuição normal (ou gaussiana)
     Normal.Samples(xa, 2.0, 0.2)
-    Normal.Samples(xb, 4.0, 0.2)
-    Normal.Samples(xc, 3.5, 0.2)
+    Normal.Samples(xb, 2.0, 0.2)
+    Normal.Samples(xc, 6.0, 0.2)
+    Normal.Samples(xd, 4.0, 0.2)
 
     Normal.Samples(ya, 3.5, 0.2)
     Normal.Samples(yb, 0.5, 0.2)
-    Normal.Samples(yc, 4.0, 0.2)
+    Normal.Samples(yc, 1.0, 0.2)
+    Normal.Samples(yd, 4.0, 0.2)
 
     let x = Array.append xa xb
     let y = Array.append ya yb
-
+    
     let classe0 =
-        let x = Array.append xa xb
-        let y = Array.append ya yb
-        [0..99] |>
+        let x = Array.append xa xb |> Array.append xc
+        let y = Array.append ya yb |> Array.append yc
+        [0 .. x.Length-1] |>
         List.map (fun n -> ([x.[n]; y.[n]], 0.0))
 
     let classe1 =
         [0..49] |>
-        List.map (fun n -> ([xc.[n]; yc.[n]], 1.0))
+        List.map (fun n -> ([xd.[n]; yd.[n]], 1.0))
     
     let classes = classe0 @ classe1
 
