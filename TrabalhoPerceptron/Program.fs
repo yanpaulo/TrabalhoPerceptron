@@ -9,7 +9,7 @@ open MathNet.Numerics.Random
 open MathNet.Numerics.Distributions
 open MathNet.Numerics.LinearAlgebra
 
-type Realizacao = { Acuracia:float; Confusao: Matrix<float>; W: Vector<float>; Dados: seq<float list * float> }
+type Realizacao = { Acuracia:float; Confusao: Matrix<float>; W: Vector<float>; Dados: List<float list * float> }
 type RealizacaoIris2a2 = { Realizacao: Realizacao; Par: int * int }
 
 let xn x = vector (-1.0 :: x)
