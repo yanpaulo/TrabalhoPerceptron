@@ -55,45 +55,6 @@ let vetorPesos tr =
 
     atualizaPesos tr w0
 
-///Retorna x2 para dado x1
-let displayFn w x1 =
-    List.ofSeq w |> 
-    function 
-        | w0 :: w1 :: w2 :: _ -> -x1 * (w1 / w2) + (w0 / w2)
-        | _ -> 0.0
-
-///Converte os 2 primeiros elementos de dada lista em uma tupla
-let tuple2 x =
-    match x with
-    | x1 :: x2 :: tail -> (x1, x2)
-    | _ -> (0.0, 0.0)
-
-let exibe realizacao =
-    printfn "%A" realizacao.Confusao
-
-    let point0 = 
-        realizacao.Dados |>
-        Seq.filter (fun (x, y) -> y = 0.0) |>
-        List.ofSeq |>
-        List.map (fun (x, y) -> tuple2 x ) |>
-        function 
-        | x -> Chart.Point(data = x, Color = System.Drawing.Color.Red)
-
-    let point1 = 
-        realizacao.Dados |>
-        Seq.filter (fun (x, y) -> y = 1.0) |>
-        List.ofSeq |>
-        List.map (fun (x, y) -> tuple2 x ) |>
-        function 
-        | x -> Chart.Point(data = x, Color = System.Drawing.Color.Blue)
-
-    let line = 
-        [1.0 .. 10.0] |>
-        List.map (fun x0 -> (x0, displayFn realizacao.W x0)) |>
-        Chart.Line
-
-    Chart.Combine([point0; point1 ; line]).ShowChart()
-
 let realizacao dados =
     let confusao = matrix([[0.0; 0.0]; [0.0; 0.0]])
         
@@ -129,8 +90,11 @@ let algoritmoIris =
         [1..20] |>
         Seq.map (fun _ -> realizacao (dados.SelectPermutation()))
     
-    realizacoes |>
+    let maior = 
+        realizacoes |>
         Seq.maxBy (fun r -> r.Acuracia)
+
+    maior
 
 let algoritmoIris2a2 =
     let db = CsvFile.Load("iris.data").Cache()
@@ -162,9 +126,8 @@ let algoritmoIris2a2 =
         realizacoes |>
             Seq.maxBy (fun r -> r.Realizacao.Acuracia)
 
-    printfn "(x1, x2) = %A" maior.Par
-    exibe maior.Realizacao |> ignore
-    0
+    printfn "Iris 2 a 2, par utilizado: (x1, x2) = %A" maior.Par
+    maior.Realizacao
 
 let algoritmoCustom =
     let xa = Array.zeroCreate 50
@@ -204,22 +167,59 @@ let algoritmoCustom =
     let classes = classe0 @ classe1
 
     let realizacoes =
-        [0..20] |>
+        [1..20] |>
         Seq.map (fun _ -> realizacao (classes.SelectPermutation()))
 
     let maior = 
         realizacoes |>
             Seq.maxBy (fun r -> r.Acuracia)
 
-    exibe maior |> ignore
-
-    0
+    maior
     
+///Retorna x2 para dado x1
+let funcaoX2 w x1 =
+    List.ofSeq w |> 
+    function 
+        | w0 :: w1 :: w2 :: _ -> -x1 * (w1 / w2) + (w0 / w2)
+        | _ -> 0.0
+
+///Converte os 2 primeiros elementos da lista 'x' em uma tupla
+let tupla x =
+    match x with
+    | x1 :: x2 :: tail -> (x1, x2)
+    | _ -> (0.0, 0.0)
+
+//Exibe 'realizacao' em um gráfico.
+let exibe realizacao =
+    let point0 = 
+        realizacao.Dados |>
+        Seq.filter (fun (x, y) -> y = 0.0) |>
+        List.ofSeq |>
+        List.map (fun (x, y) -> tupla x ) |>
+        function 
+        | x -> Chart.Point(data = x, Color = System.Drawing.Color.Red)
+
+    let point1 = 
+        realizacao.Dados |>
+        Seq.filter (fun (x, y) -> y = 1.0) |>
+        List.ofSeq |>
+        List.map (fun (x, y) -> tupla x ) |>
+        function 
+        | x -> Chart.Point(data = x, Color = System.Drawing.Color.Blue)
+
+    let line = 
+        [1.0 .. 10.0] |>
+        List.map (fun x0 -> (x0, funcaoX2 realizacao.W x0)) |>
+        Chart.Line
+
+    Chart.Combine([point0; point1 ; line]).ShowChart()
+
 [<EntryPoint>]
 let main argv = 
     let form = new Form()
-    algoritmoIris2a2 |> ignore
-    algoritmoCustom |> ignore
+    algoritmoIris |> printfn "%A"
+    algoritmoIris2a2 |> printfn "%A"
+    algoritmoCustom |> printfn "%A"
     Application.Run(form)
 
     0 // retornar um código de saída inteiro
