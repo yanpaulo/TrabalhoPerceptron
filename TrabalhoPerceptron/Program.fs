@@ -9,6 +9,9 @@ open MathNet.Numerics.Random
 open MathNet.Numerics.Distributions
 open MathNet.Numerics.LinearAlgebra
 
+type Realizacao = { Acuracia:float; Confusao: Matrix<float>; Dados: seq<float list * float>; W: Vector<float> }
+type RealizacaoIris = { Realizacao: Realizacao; Par: int * int }
+
 let xn x = vector (-1.0 :: x)
 
 let linear w x = 
@@ -53,10 +56,6 @@ let arrayTuple x =
     match x with
     | x1 :: x2 :: tail -> (x1, x2)
     | _ -> (0.0, 0.0)
-
-
-type Realizacao = { Acuracia:float; Confusao: Matrix<float>; Dados: seq<float list * float>; W: Vector<float> }
-type RealizacaoIris = { Realizacao: Realizacao; Par: int * int }
 
 let exibe (maior: Realizacao) =
     printfn "%A" maior.Confusao
