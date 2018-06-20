@@ -46,12 +46,14 @@ let rec atualizaPesos tr w =
     let (w', e') = atualizaPesos' tr w e
     if e' = 0.0 then w' else atualizaPesos tr w'
 
+///Retorna x2 para dado x1
 let displayFn w x1 =
     List.ofSeq w |> 
     function 
         | w0 :: w1 :: w2 :: _ -> -x1 * (w1 / w2) + (w0 / w2)
         | _ -> 0.0
 
+///Converte os 2 primeiros elementos de dada lista em uma tupla
 let arrayTuple x =
     match x with
     | x1 :: x2 :: tail -> (x1, x2)
@@ -91,7 +93,11 @@ let realizacao dados =
         Seq.take 80 |>
         List.ofSeq
         
-    let w0 = Random.doubles 3 |> vector
+    let tamanhoVetor = 
+        treinamento.Head |> 
+        fun (x, y) -> x |> List.length |> (+) 1
+
+    let w0 = Random.doubles tamanhoVetor |> vector
 
     let w = atualizaPesos treinamento w0
 
@@ -102,8 +108,7 @@ let realizacao dados =
         
     { Acuracia = confusao.Diagonal().Sum() / float (dados |> Seq.length) ; Confusao = confusao; Dados = dados; W = w }
 
-
-let algoritmoIris =
+let algoritmoIris2a2 =
     let db = CsvFile.Load("iris.data").Cache()
     let classes = dict["Iris-setosa", 0; "Iris-versicolor", 1; "Iris-virginica", 1]
 
@@ -189,7 +194,7 @@ let algoritmoCustom =
 [<EntryPoint>]
 let main argv = 
     let form = new Form()
-    algoritmoIris |> ignore
+    algoritmoIris2a2 |> ignore
     algoritmoCustom |> ignore
     Application.Run(form)
 
