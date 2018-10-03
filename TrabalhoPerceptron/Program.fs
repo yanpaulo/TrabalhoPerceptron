@@ -30,7 +30,7 @@ let erro w x y = y - ativacao w x
 let proximo (w: Vector<_>) (x: Vector<_>) e =
     w + 0.1 * e * x
 
-let vetorPesos tr =
+let vetorPesos treinamento =
     let rec atualizaPesos tr w =
         let rec atualizaPesos1 tr w e =
             match tr with
@@ -47,13 +47,13 @@ let vetorPesos tr =
         let (w', e') = atualizaPesos1 tr w e
         if e' = 0.0 then w' else atualizaPesos (tr.SelectPermutation() |> List.ofSeq) w'
     let tamanhoVetor =
-        tr |> 
+        treinamento |> 
         List.head |> 
         fun (x, y) -> x |> List.length |> (+) 1
 
     let w0 = Random.doubles tamanhoVetor |> vector
 
-    atualizaPesos tr w0
+    atualizaPesos treinamento w0
 
 let realizacao dados =
     let confusao = matrix([[0.0; 0.0]; [0.0; 0.0]])
@@ -62,7 +62,6 @@ let realizacao dados =
     let treinamento = 
         let n = dadosList |> List.length |> float |> (*) 0.8 |> int
         dadosList |> List.take n
-
     let teste = dadosList |> List.except treinamento
 
     let w = vetorPesos treinamento
